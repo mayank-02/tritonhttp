@@ -1,0 +1,7 @@
+virtual_hosts:
+  - hostName: "website1"
+    docRoot: "htdocs1"
+  - hostName: "website2"
+    docRoot: "htdocs2"
+  - hostName: "website3"
+    docRoot: "htdocs3"
