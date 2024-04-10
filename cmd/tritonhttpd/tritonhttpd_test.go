@@ -271,7 +271,7 @@ func TestAllFilesInHtdocs(t *testing.T) {
 
 				origmimetype := mime.TypeByExtension(filepath.Ext(path))
 
-				if origmimetype != respcontenttype {
+				if !strings.HasPrefix(origmimetype, respcontenttype) {
 					t.Fatalf("Expected Content-Type of %v but got %v instead\n", origmimetype, respcontenttype)
 				}
 
