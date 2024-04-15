@@ -74,9 +74,4 @@ The source code for tools needed to interact with TritonHTTP can be found in `cm
 
 ## Submission
 
-Either submit through GitHub, or:
-```
-make submission
-```
-
-And upload the generated `submission.zip` file to Gradescope.
+Please submit on gradescope through GitHub.
