@@ -1,5 +1,5 @@
 GET / HTTP/1.1
-Host: localhost
+Host: website1
 Connection: close
 User-Agent: gotest
 
