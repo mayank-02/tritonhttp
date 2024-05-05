@@ -2,8 +2,12 @@ package tritonhttp
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"log"
+	"net"
 	"strings"
+	"time"
 	"unicode"
 )
 
@@ -54,9 +58,9 @@ func validURL(url string) bool {
 }
 
 // ReadRequest reads and parses an incoming request from br.
-func ReadRequest(br *bufio.Reader) (request *Request, bytesRead int, err error) {
+func ReadRequest(conn net.Conn, br *bufio.Reader) (request *Request, bytesRead int, err error) {
 	bytesRead = 0
-	line, err := ReadLine(br)
+	line, err := ReadLine(conn, br)
 	bytesRead += len(line)
 	if err != nil {
 		return nil, bytesRead, err
@@ -71,7 +75,7 @@ func ReadRequest(br *bufio.Reader) (request *Request, bytesRead int, err error) 
 
 	// Read other lines of requests
 	for {
-		line, err := ReadLine(br)
+		line, err := ReadLine(conn, br)
 		bytesRead += len(line)
 		if err != nil {
 			return nil, bytesRead, err
@@ -145,24 +149,31 @@ func parseHTTPHeader(line string) (string, string, error) {
 	return key, value, nil
 }
 
-// ReadLine reads a single line ending with "\r\n" from br,
-// striping the "\r\n" line end from the returned string.
-// If any error occurs, data read before the error is also returned.
-// You might find this function useful in parsing requests.
-func ReadLine(br *bufio.Reader) (string, error) {
-	var line string
+func ReadLine(conn net.Conn, br *bufio.Reader) (string, error) {
+	var line []byte
 	for {
-		s, err := br.ReadString('\n')
-		line += s
-		// Return the error
-		if err != nil {
-			return line, err
+		// Set timeout
+		if err := conn.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
+			log.Printf("Failed to set timeout for connection %v", conn)
+			conn.Close()
+			return string(line), err
 		}
-		// Return the line when reaching line end
-		if strings.HasSuffix(line, "\r\n") {
-			// Striping the line end
-			line = line[:len(line)-2]
-			return line, nil
+
+		// Read one byte at a time and append to line
+		s := make([]byte, 1)
+		bytesRead, err := br.Read(s)
+		if bytesRead > 0 {
+			line = append(line, s[:bytesRead]...)
+		}
+
+		// If line ends in \r\n, return after trimming it
+		if len(line) >= 2 && bytes.Equal(line[len(line)-2:], []byte("\r\n")) {
+			return string(line[:len(line)-2]), nil
+		}
+
+		// Return the error with any data read so far
+		if err != nil {
+			return string(line), err
 		}
 	}
 }

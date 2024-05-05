@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 const (
@@ -93,15 +92,8 @@ func (s *Server) HandleConnection(conn net.Conn) {
 
 	// Continuously read from  connection until EOF or timeout
 	for {
-		// Set timeout
-		if err := conn.SetReadDeadline(time.Now().Add(RECV_TIMEOUT)); err != nil {
-			log.Printf("Failed to set timeout for connection %v", conn)
-			conn.Close()
-			return
-		}
-
 		// Read next request from the client
-		req, bytesRead, err := ReadRequest(br)
+		req, bytesRead, err := ReadRequest(conn, br)
 
 		// Handle EOF
 		if errors.Is(err, io.EOF) {

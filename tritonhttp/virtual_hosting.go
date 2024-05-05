@@ -1,7 +1,6 @@
 package tritonhttp
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,6 +8,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// VHConfigs is a struct to hold the virtual host configuration
 type VHConfigs struct {
 	VirtualHosts []struct {
 		HostName string `yaml:"hostName"`
@@ -16,27 +16,35 @@ type VHConfigs struct {
 	} `yaml:"virtual_hosts"`
 }
 
-func ParseVHConfigFile(vhConfigFilePath string, docroot_dirs_path string) map[string]string {
-	vh_map := make(map[string]string)
-	f, err := ioutil.ReadFile(vhConfigFilePath)
-
+// ParseVHConfigFile parses the virtual host configuration file (YAML) and returns a map
+// of virtual hosts to their docroot paths.
+func ParseVHConfigFile(vhConfigFilePath string, docrootDirsPath string) map[string]string {
+	// Read the YAML file
+	f, err := os.ReadFile(vhConfigFilePath)
 	if err != nil {
-		log.Fatalf("could not read config file %s : %v", vhConfigFilePath, err)
+		log.Fatalf("Failed to read configuration file %s: %v", vhConfigFilePath, err)
 	}
 
+	// Unmarshal the YAML file
 	vhostConfigs := VHConfigs{}
-	err = yaml.Unmarshal(f, &vhostConfigs)
+	if yaml.Unmarshal(f, &vhostConfigs) != nil {
+		log.Fatalf("Failed to unmarshal YAML: %v", err)
+	}
 
+	// Iterate through the virtual hosts and construct the map
+	vhMap := make(map[string]string)
 	for _, vhost := range vhostConfigs.VirtualHosts {
-		docroot_path := filepath.Join(docroot_dirs_path, vhost.DocRoot)
+		docrootPath := filepath.Join(docrootDirsPath, vhost.DocRoot)
 
 		// Check if the path exists
-		_, err := os.Stat(docroot_path)
+		_, err := os.Stat(docrootPath)
 		if err != nil {
-			log.Fatalf("path to docroot %s doesn't exist : %v", docroot_path, err)
+			log.Fatalf("Docroot %s does not exist: %v", docrootPath, err)
 		}
-		vh_map[vhost.HostName] = docroot_path
+
+		// Add the virtual host to the map
+		vhMap[vhost.HostName] = docrootPath
 	}
 
-	return vh_map
+	return vhMap
 }

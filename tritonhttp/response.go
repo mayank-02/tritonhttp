@@ -40,6 +40,10 @@ func NewResponse(s *Server, request *Request, statusCode int) Response {
 		Request:    request,
 		FilePath:   "",
 	}
+	r.Headers["Date"] = FormatTime(time.Now())
+	if statusCode == 400 || request.Close {
+		r.Headers["Connection"] = "close"
+	}
 	if statusCode == 200 {
 		r.FilePath = filepath.Clean(s.VirtualHosts[request.Host] + request.URL)
 		if !strings.HasPrefix(r.FilePath, s.VirtualHosts[request.Host]) {
@@ -61,11 +65,7 @@ func NewResponse(s *Server, request *Request, statusCode int) Response {
 
 		r.Headers["Content-Length"] = fmt.Sprintf("%v", fileinfo.Size())
 		r.Headers["Content-Type"] = mime.TypeByExtension(filepath.Ext(r.FilePath))
-		r.Headers["Date"] = FormatTime(time.Now())
 		r.Headers["Last-Modified"] = FormatTime(fileinfo.ModTime())
-		if request.Close {
-			r.Headers["Connection"] = "close"
-		}
 	}
 	return r
 }
