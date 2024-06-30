@@ -1,76 +1,75 @@
+<img align="right" src="./doc/logo.png" width="18%">
+
 # TritonHTTP
 
-## Spec Summary
+TritonHTTP is a lightweight web server that implements a subset of the HTTP/1.1 protocol, specifically designed to handle GET requests. This project is a practical exploration of HTTP server functionalities, focusing on concurrency, request parsing, and response handling.
 
-Here we provide a concise summary of the TritonHTTP spec. You should read the spec doc for more details and clarifications.
+## Features
 
-### HTTP Messages
+- Basic Web Server: Listens for connections and processes HTTP requests from clients.
+- Persistent Connections: Supports reuse of TCP connections for improved efficiency.
+- Request Handling: Properly parses and responds to HTTP GET requests.
+- Error Responses: Implements appropriate HTTP status codes (200, 400, 404).
+- Virtual Hosting: Supports multiple hostnames, mapping to unique directories.
+- Timeout Mechanism: Closes connections after a configurable timeout period.
 
-TritonHTTP follows the [general HTTP message format](https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages). And it has some further specifications:
+### Supported HTTP Headers
 
-- HTTP version supported: `HTTP/1.1`
-- Request method supported: `GET`
-- Response status supported:
-  - `200 OK`
-  - `400 Bad Request`
-  - `404 Not Found`
-- Request headers:
+- **Request Headers**:
   - `Host` (required)
-  - `Connection` (optional, `Connection: close` has special meaning influencing server logic)
-  - Other headers are allowed, but won't have any effect on the server logic
-- Response headers:
-  - `Date` (required)
-  - `Last-Modified` (required for a `200` response)
-  - `Content-Type` (required for a `200` response)
-  - `Content-Length` (required for a `200` response)
-  - `Connection: close` (required in response for a `Connection: close` request, or for a `400` response)
-  - Response headers should be written in sorted order for the ease of testing
-  - Response headers should be returned in 'canonical form', meaning that the first letter and any letter following a hyphen should be upper-case. All other letters in the header string should be lower-case.
+  - `Connection` (optional)
+- **Response Headers**:
+  - `Date`
+  - `Last-Modified`
+  - `Content-Type`
+  - `Content-Length`
+  - `Connection`
 
-### Server Logic
+For detailed specification, refer to `docs/theory.pdf`.
 
-When to send a `200` response?
-- When a valid request is received, and the requested file can be found.
+## Setup
 
-When to send a `404` response?
-- When a valid request is received, and the requested file cannot be found or is not under the doc root.
+```bash
+# Clone the repository
+git clone https://github.com/mayank-02/tritonhttp.git
+cd tritonhttp
 
-When to send a `400` response?
-- When an invalid request is received.
-- When timeout occurs and a partial request is received.
+# Install dependencies
+go mod tidy
 
-When to close the connection?
-- When timeout occurs and no partial request is received.
-- When EOF occurs.
-- After sending a `400` response.
-- After handling a valid request with a `Connection: close` header.
+# Run tests
+go test ./...
 
-When to update the timeout?
-- When trying to read a new request.
+# Run the server
+go run server.go
 
-What is the timeout value?
-- 5 seconds.
+# Open your browser and navigate to `http://localhost:PORT`.
+```
 
-## Implementation
+## Configuration
 
-Please limit your implimentation to the following files, because we'll only copy over these files for grading:
-- `tritonhttp/`
-  - `request.go`
-  - `response.go`
-  - `server.go`
+* Virtual Hosts: Define your host-to-directory mappings in virtual_hosts.yaml.
+* Server Port: Modify the default port in the configuration section of main.go if needed.
 
-There are some utility functions defined in `tritonhttp/util.go` that you might find useful.
+## Testing
 
-## Usage
+Automated tests are provided to verify server functionality:
 
-The source code for tools needed to interact with TritonHTTP can be found in `cmd`. The following commands can be used to launch these tools:
+```
+go test -v
+```
 
-1) `make fetch` - A tool that allows you to construct custom responses and send them to your web server. Please refer to the README in `fetch`'s directory for more information.
 
-2) `make gohttpd` - Starts up Go's inbuilt web-server.
+You can also use command-line tools like `curl` or `netcat` to test the server responses. Example:
 
-3) `make tritonhttpd`  - Starts up your implementation of TritonHTTP
+```bash
+curl -v http://localhost:PORT/path/to/resource
+```
 
-## Submission
+## Contributions
 
-Please submit on gradescope through GitHub.
+Contributions are welcome! Please fork the repository and submit a pull request for review.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.

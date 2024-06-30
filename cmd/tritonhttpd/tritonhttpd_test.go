@@ -83,6 +83,8 @@ func launchtritonhttpd(t *testing.T) {
 func TestGoFetch1(t *testing.T) {
 	launchhttpd(t)
 
+	time.Sleep(1 * time.Second)
+
 	req := "GET / HTTP/1.1\r\n" +
 		"Host: website1\r\n" +
 		"Connection: close\r\n" +
@@ -108,6 +110,8 @@ func TestGoFetch1(t *testing.T) {
 
 func TestGoFetch2(t *testing.T) {
 	launchhttpd(t)
+
+	time.Sleep(1 * time.Second)
 
 	req := "GET / HTTP/1.1\r\n" +
 		"Host: website1\r\n" +
@@ -149,6 +153,8 @@ func TestGoFetch2(t *testing.T) {
 
 func TestGoFetch3(t *testing.T) {
 	launchhttpd(t)
+
+	time.Sleep(1 * time.Second)
 
 	req := "foobar\r\n" +
 		"Host: website1\r\n" +
